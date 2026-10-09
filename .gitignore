@@ -1,0 +1,13 @@
+# local settings / secrets - never commit
+.env
+# virtual environment
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# kit reference files (keep locally, the problem statement must not be published)
+openapi.yaml
+DATA_MODEL.md
+PROBLEM_STATEMENT.docx
+# private interview notes
+INTERVIEW_GUIDE.md
