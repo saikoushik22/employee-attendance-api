@@ -29,6 +29,8 @@ from bson import Decimal128, json_util
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Path, Query
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse
 from pydantic import AfterValidator, BaseModel, Field, StrictInt, model_validator
 from pymongo import MongoClient, ReturnDocument
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -317,9 +319,7 @@ app = FastAPI(
     title="Employee Attendance & Analytics API",
     version="2.0.0",
     lifespan=lifespan,
-    docs_url="/",                                  # interactive docs at the server address, not /docs
-    swagger_ui_oauth2_redirect_url=None,           # no OAuth here, so no /docs/oauth2-redirect page
-    swagger_ui_parameters={"deepLinking": False},  # keep the address bar at "/" (no "#/...")
+    docs_url=None,  # the interactive docs are served by docs_page() at "/" (dark theme)
 )
 
 
@@ -331,6 +331,18 @@ def get_employee(emp_code: str) -> dict:
     if emp is None:
         raise HTTPException(404, "employee not found")
     return emp
+
+
+@app.get("/", include_in_schema=False)
+def docs_page() -> HTMLResponse:
+    """Interactive docs (Swagger UI) at the server address. Not part of the contract.
+    Swagger UI ships a dark theme that turns on when <html> has the class "dark-mode"."""
+    page = get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - Swagger UI",
+        swagger_ui_parameters={"deepLinking": False},  # keep the address bar at "/" (no "#/...")
+    )
+    return HTMLResponse(page.body.decode().replace("<html>", '<html class="dark-mode">', 1))
 
 
 @app.get("/health")
